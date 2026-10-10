@@ -23,6 +23,7 @@ There is no UI — the project exposes a JSON API only.
 | Database | SQLite (default, zero configuration) |
 | Tests | PHPUnit 12 |
 | Formatter | Laravel Pint |
+| API docs | [darkaonline/l5-swagger](https://github.com/DarkaOnLine/L5-Swagger) (OpenAPI 3.0) |
 
 > The default connection is SQLite so the project runs with no external services. See [Switch to MySQL](#switch-to-mysql) if you prefer.
 
@@ -168,6 +169,23 @@ curl -X PATCH "$BASE/couriers/1" \
 curl -X DELETE "$BASE/couriers/1" -H "Accept: application/json"
 ```
 
+## API documentation (Swagger)
+
+Interactive OpenAPI 3.0 documentation is generated with [l5-swagger](https://github.com/DarkaOnLine/L5-Swagger):
+
+| | |
+| --- | --- |
+| Swagger UI | `http://127.0.0.1:8000/api/documentation` |
+| OpenAPI JSON | `http://127.0.0.1:8000/docs` |
+
+The specification is built from PHP attributes: the API metadata and reusable schemas live in `app/OpenApi/`, and each endpoint is annotated on `Api\CourierController`. Regenerate the documentation after changing an annotation:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+With `L5_SWAGGER_GENERATE_ALWAYS=true` (the default in `.env.example`) the documentation is regenerated automatically on every request, so there is no manual step during development. The configuration lives in `config/l5-swagger.php`.
+
 ## Testing
 
 ```bash
@@ -182,7 +200,8 @@ tests/Feature/Courier/StoreCourierTest.php    # validation rules, persistence, u
 tests/Feature/Courier/ShowCourierTest.php     # single courier payload and 404
 tests/Feature/Courier/UpdateCourierTest.php   # full/partial update, unique ignore, 404
 tests/Feature/Courier/DestroyCourierTest.php  # deletion and 404
-tests/Unit/Enums/                            # enum values
+tests/Feature/OpenApiTest.php                 # Swagger UI and generated specification
+tests/Unit/Enums/                             # enum values
 ```
 
 ## Design notes
@@ -193,6 +212,7 @@ tests/Unit/Enums/                            # enum values
 - **Local scopes** (`search`, `ofLevel`) keep the reusable query logic on the model and out of the controller.
 - **Sort columns and direction are whitelisted** before they reach `orderBy`, preventing SQL injection through the query string. Every order is given an `id` tie-breaker so pagination is stable.
 - **Factory + seeder** are included; `CourierSeeder` seeds a predictable `Budiono Hadi Agung` record so the search example is demonstrable after `migrate --seed`.
+- **OpenAPI annotations** live in `app/OpenApi` (info, server, schemas) and on the controller actions; the spec is rendered by `l5-swagger`.
 
 ## Assumptions
 
