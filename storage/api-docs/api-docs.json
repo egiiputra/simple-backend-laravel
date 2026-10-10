@@ -1,0 +1,710 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Courier Service API",
+        "description": "REST API for managing courier master data (create, read, update, delete).",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API base path"
+        }
+    ],
+    "paths": {
+        "/couriers": {
+            "get": {
+                "tags": [
+                    "Couriers"
+                ],
+                "summary": "List couriers",
+                "description": "Returns a paginated list of couriers. Results are ordered by name by default; use the query parameters to change the ordering, search by name, or filter by level.",
+                "operationId": "couriers.index",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Match couriers whose name contains every word of the term.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "budi agung"
+                    },
+                    {
+                        "name": "level",
+                        "in": "query",
+                        "description": "Comma-separated list of levels to include (1-5).",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "2,3"
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Column to order by.",
+                        "schema": {
+                            "type": "string",
+                            "default": "name",
+                            "enum": [
+                                "name",
+                                "registered_at",
+                                "level",
+                                "created_at"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "description": "Sort direction.",
+                        "schema": {
+                            "type": "string",
+                            "default": "asc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page (1-100).",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of couriers.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Courier"
+                                            }
+                                        },
+                                        "links": {
+                                            "$ref": "#/components/schemas/PaginationLinks"
+                                        },
+                                        "meta": {
+                                            "$ref": "#/components/schemas/PaginationMeta"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid query parameters.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Couriers"
+                ],
+                "summary": "Create a courier",
+                "description": "Store a newly created courier.",
+                "operationId": "couriers.store",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CourierPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Courier created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Courier"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/couriers/{courier}": {
+            "get": {
+                "tags": [
+                    "Couriers"
+                ],
+                "summary": "Get a courier",
+                "description": "Display the specified courier.",
+                "operationId": "couriers.show",
+                "parameters": [
+                    {
+                        "name": "courier",
+                        "in": "path",
+                        "description": "Courier id.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The courier.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Courier"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Courier not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Couriers"
+                ],
+                "summary": "Replace a courier",
+                "operationId": "couriers.replace",
+                "parameters": [
+                    {
+                        "name": "courier",
+                        "in": "path",
+                        "description": "Courier id.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CourierPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Courier updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Courier"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Courier not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Couriers"
+                ],
+                "summary": "Delete a courier",
+                "description": "Remove the specified courier.",
+                "operationId": "couriers.destroy",
+                "parameters": [
+                    {
+                        "name": "courier",
+                        "in": "path",
+                        "description": "Courier id.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Courier deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Courier not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Couriers"
+                ],
+                "summary": "Update a courier",
+                "description": "Updates a courier. Every field is optional; only the provided attributes are changed.",
+                "operationId": "couriers.update",
+                "parameters": [
+                    {
+                        "name": "courier",
+                        "in": "path",
+                        "description": "Courier id.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CourierPayload"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Courier updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Courier"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Courier not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Courier": {
+                "title": "Courier",
+                "description": "A single courier master data record.",
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "phone",
+                    "level",
+                    "vehicle_type",
+                    "is_active",
+                    "registered_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Budiono Hadi Agung",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "budiono.agung@example.com",
+                        "maxLength": 255
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "081200000001",
+                        "maxLength": 20
+                    },
+                    "level": {
+                        "type": "integer",
+                        "example": 2,
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ]
+                    },
+                    "vehicle_type": {
+                        "type": "string",
+                        "example": "motorcycle",
+                        "enum": [
+                            "motorcycle",
+                            "car",
+                            "van",
+                            "truck",
+                            "bicycle"
+                        ]
+                    },
+                    "vehicle_plate": {
+                        "type": "string",
+                        "example": "B 1001 AAA",
+                        "nullable": true,
+                        "maxLength": 20
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Jl. Merdeka No. 1",
+                        "nullable": true
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Jakarta",
+                        "nullable": true,
+                        "maxLength": 100
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "registered_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-02-01T08:00:00.000000Z"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-02-01T08:00:00.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-02-01T08:00:00.000000Z"
+                    }
+                },
+                "type": "object"
+            },
+            "CourierPayload": {
+                "title": "Courier payload",
+                "description": "Payload used to create or update a courier. Required fields apply to create; on update (PATCH) every field is optional and only the provided attributes are changed.",
+                "required": [
+                    "name",
+                    "email",
+                    "phone",
+                    "level",
+                    "vehicle_type",
+                    "registered_at"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Budi Agung",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "budi.agung@example.com",
+                        "maxLength": 255
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "081234567890",
+                        "maxLength": 20
+                    },
+                    "level": {
+                        "type": "integer",
+                        "example": 3,
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ]
+                    },
+                    "vehicle_type": {
+                        "type": "string",
+                        "example": "motorcycle",
+                        "enum": [
+                            "motorcycle",
+                            "car",
+                            "van",
+                            "truck",
+                            "bicycle"
+                        ]
+                    },
+                    "vehicle_plate": {
+                        "type": "string",
+                        "example": "B 1234 XYZ",
+                        "nullable": true,
+                        "maxLength": 20
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Jl. Merdeka No. 1",
+                        "nullable": true,
+                        "maxLength": 1000
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Jakarta",
+                        "nullable": true,
+                        "maxLength": 100
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true,
+                        "default": true
+                    },
+                    "registered_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-02-01 08:00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "MessageResponse": {
+                "title": "Message response",
+                "description": "A simple message payload.",
+                "required": [
+                    "message"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Courier deleted successfully."
+                    }
+                },
+                "type": "object"
+            },
+            "PaginationLinks": {
+                "title": "Pagination links",
+                "description": "Navigation URLs for the paginated result set.",
+                "properties": {
+                    "first": {
+                        "type": "string",
+                        "example": "http://localhost/api/couriers?page=1",
+                        "nullable": true
+                    },
+                    "last": {
+                        "type": "string",
+                        "example": "http://localhost/api/couriers?page=2",
+                        "nullable": true
+                    },
+                    "prev": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "next": {
+                        "type": "string",
+                        "example": "http://localhost/api/couriers?page=2",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PaginationMeta": {
+                "title": "Pagination meta",
+                "description": "Pagination metadata for the result set.",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "from": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "path": {
+                        "type": "string",
+                        "example": "http://localhost/api/couriers"
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "to": {
+                        "type": "integer",
+                        "example": 15,
+                        "nullable": true
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 21
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "example": "1"
+                                },
+                                "page": {
+                                    "type": "integer",
+                                    "example": 1,
+                                    "nullable": true
+                                },
+                                "active": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "title": "Validation error",
+                "description": "Returned with a 422 response when the request fails validation.",
+                "required": [
+                    "message",
+                    "errors"
+                ],
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The name field is required. (and 2 more errors)"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "name": [
+                                "The name field is required."
+                            ]
+                        },
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Couriers",
+            "description": "Courier master data endpoints"
+        }
+    ]
+}
